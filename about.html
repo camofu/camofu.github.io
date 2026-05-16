@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carlo Modica</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Carlo Modica</h1>
+  <p class="tagline">Cryptographer applying cryptography to distributed systems. Former quantum scientist.</p>
+  <nav>
+    <a href="#about">About</a>
+    <a href="#experience">Experience</a>
+    <a href="#publications">Publications &amp; Talks</a>
+    <a href="#skills">Skills</a>
+    <a href="#education">Education</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<section id="about">
+  <h2>About</h2>
+  <p>I'm a cryptographer working at the intersection of zero-knowledge proof systems and distributed systems. My recent work spans WHIR and multilinear polynomial commitment schemes, zkVM architecture (Valida), and privacy-preserving protocols (shielded airdrop, Namada specs). Before cryptography I worked on quantum machine learning and semiconductor-based qubit hardware.</p>
+</section>
+
+<section id="experience">
+  <h2>Experience</h2>
+
+  <article>
+    <h3>WHIR — independent contributions and research</h3>
+    <p class="meta">October 2025 – present · Remote</p>
+    <p>Ongoing research and open-source contributions to WHIR — a multilinear polynomial commitment scheme based on an IOP of proximity for constrained Reed–Solomon codes — and its reference Rust implementation <code>whir-p3</code> (originally <code>tcoratger/whir-p3</code>, now upstreaming into <code>Plonky3/Plonky3</code>). The first three months (October – December 2025) were paid contract work for the Ethereum Foundation, delivered through Lita. After Lita closed I continued voluntarily: protocol design (batch opening, HVZK overlay), performance work (merged SIMD <code>compress_hi_dot</code> PR in Plonky3), a daily Twitter thread on sumcheck optimizations, and a pending WHIR-DAS grant proposal.</p>
+  </article>
+
+  <article>
+    <h3>Cryptography Engineer — Lita (Valida zkVM)</h3>
+    <p class="meta">January 2025 – 2025 · Fully remote</p>
+    <ul>
+      <li>Expansion of the Valida zkVM architecture, including precompiled chips.</li>
+      <li>Research and development of high-performance STARK circuits.</li>
+      <li>zkVM architecture research; cryptographic soundness analysis.</li>
+      <li>High-performance computing methods applied to cryptographic applications.</li>
+      <li>Delivered contract work for the Ethereum Foundation on the WHIR polynomial commitment scheme (October – December 2025) as part of the Lita engagement.</li>
+      <li>Consultancy work for other crypto projects.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>Zero-Knowledge Cryptographer &amp; Protocol Developer — Heliax / Anoma Protocol</h3>
+    <p class="meta">April 2022 – December 2024 · Berlin, Germany</p>
+    <ul>
+      <li>Designed and implemented VampIR — an intermediate language for ZK polynomial circuits (framed as "LLVM for polynomial circuits").</li>
+      <li>Designed the shielded airdrop protocol (privacy-preserving token distribution), currently under implementation.</li>
+      <li>Halo2 user and contributor.</li>
+      <li>Rust implementation and optimization of the PlonkUp protocol; worked on hiding properties of the KZG polynomial commitment scheme.</li>
+      <li>Specs writing, reviewing, and internal auditing for Namada.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>Junior Scientist — Cambridge Quantum Computing</h3>
+    <p class="meta">February 2020 – September 2021 · London, UK</p>
+    <ul>
+      <li>Quantum Machine Learning team member.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>Intern — Cambridge Quantum Computing</h3>
+    <p class="meta">June 2018 – September 2018 · Cambridge, UK</p>
+  </article>
+</section>
+
+<section id="publications">
+  <h2>Publications &amp; Talks</h2>
+
+  <h3>Publications</h3>
+  <ul>
+    <li><strong>Filtering variational quantum algorithms for combinatorial optimization.</strong> Carlo Modica. <em>IOP Quantum Science and Technology</em>, June 2021.</li>
+  </ul>
+
+  <h3>Talks</h3>
+  <ul>
+    <li><strong>The Future of zkVM Interoperability</strong> — panel at House of ZK, Berlin Blockchain Week, June 2025.</li>
+    <li><strong>RISC-V or not RISC-V</strong> — panel at ZuBerlin, Berlin Blockchain Week, June 2025.</li>
+    <li><strong>VampIR: LLVM for polynomial circuits</strong> — workshop at ETH Prague, June 2023.</li>
+  </ul>
+</section>
+
+<section id="skills">
+  <h2>Skills</h2>
+
+  <h3>Cryptography / Zero-Knowledge</h3>
+  <ul>
+    <li>Polynomial commitment schemes: WHIR, KZG (including hiding properties), multilinear PCS, batch opening techniques.</li>
+    <li>Proof systems: Plonk / PlonkUp, Halo2 (user and contributor), STARK.</li>
+    <li>Multilinear sumcheck protocol; verifier-side optimization.</li>
+    <li>zkVM architecture: precompiled chips, soundness analysis.</li>
+    <li>Protocol design: shielded airdrop (privacy-preserving token distribution).</li>
+    <li>Specs writing and internal protocol auditing (Namada).</li>
+    <li>Intermediate-language / compiler design for cryptographic circuits (VampIR).</li>
+  </ul>
+
+  <h3>Quantum</h3>
+  <ul>
+    <li>Quantum machine learning.</li>
+    <li>Variational quantum algorithms for combinatorial optimization.</li>
+    <li>Semiconductor-based qubit hardware — experimental work (MSc thesis at the Center for Quantum Devices, Copenhagen).</li>
+  </ul>
+
+  <h3>Languages / Tooling</h3>
+  <ul>
+    <li>Rust (primary implementation language).</li>
+    <li>High-performance computing methods applied to cryptography.</li>
+  </ul>
+
+  <h3>Domains</h3>
+  <ul>
+    <li>Distributed systems and blockchain protocols (Ethereum, Anoma / Namada).</li>
+    <li>Data science (Kaggle bronze medal).</li>
+  </ul>
+</section>
+
+<section id="education">
+  <h2>Education</h2>
+
+  <article>
+    <h3>MSc Physics, Quantum Track — University of Copenhagen</h3>
+    <p class="meta">September 2017 – February 2020 · Copenhagen, Denmark</p>
+    <ul>
+      <li>Thesis: <em>Vacuum-Gap Capacitors for semiconductor-based qubits</em> — experimental work at the Center for Quantum Devices, University of Copenhagen. Supervisors: Karl Petersson and Charles Marcus.</li>
+      <li>Modules: Advanced Quantum Mechanics; Quantum Magnetism; Condensed Matter Physics; Condensed Matter Theory I &amp; II; Quantum Nanoelectronics; Large-Scale Data Analysis; Quantum Information.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>BEng, Engineering Physics — Politecnico di Milano</h3>
+    <p class="meta">September 2014 – July 2017 · Milan, Italy</p>
+  </article>
+</section>
+
+<section id="contact">
+  <h2>Contact</h2>
+  <ul class="contact-list">
+    <li>Email — <a href="mailto:carlo.modica@protonmail.com">carlo.modica@protonmail.com</a></li>
+    <li>GitHub — <a href="https://github.com/camofu">camofu</a></li>
+    <li>LinkedIn — <a href="https://www.linkedin.com/in/carlo-modica/">carlo-modica</a></li>
+    <li>Twitter / X — <a href="https://x.com/carlo_cretino50">@carlo_cretino50</a></li>
+  </ul>
+</section>
+
+<footer>
+  <p>&copy; Carlo Modica</p>
+</footer>
+
+</main>
+</body>
+</html>
