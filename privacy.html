@@ -16,18 +16,27 @@
 </header>
 
 <section>
-  <h2>Shielded airdrop</h2>
-  <p>Designed the shielded airdrop protocol — a privacy-preserving mechanism for token distribution — at Heliax / <a href="https://anoma.net/">Anoma Protocol</a>. The protocol is currently under implementation.</p>
+  <h2>Shielded airdrop — Namada × Zcash</h2>
+  <article>
+    <p class="meta">December 2023 – December 2024 · Berlin / remote · part of the Heliax / Anoma role</p>
+    <p>Designed the shielded airdrop protocol — a privacy-preserving mechanism for routing NAM tokens to Zcash (ZEC) holders without forcing claimants to deanonymize their Zcash positions. The construction leverages the structural compatibility between Sapling notes and Namada's MASP notes (they differ only in the presence of a note type).</p>
+    <ul>
+      <li><strong>Public proposal (December 2023).</strong> Framed the Heliax–Zcash alliance and three UX paths for claiming on the Zcash community forum.</li>
+      <li><strong>v1 → v2 redesign (2024).</strong> Identified that v1 revealed nullifiers of unspent ZEC notes, breaking unlinkability between commitments and the nullifier set. The v2 construction introduces non-membership proofs, distinct unlinkable airdrop nullifiers, and Sapling↔Orchard equivalence statements.</li>
+      <li><strong>ECC review.</strong> ECC's daira and str4d provided a formal cryptographic review that shaped the v2 construction.</li>
+      <li><strong>RFC and PoC.</strong> The v2 RFC and a Rust proof-of-concept for transaction validity checks live at <a href="https://github.com/anoma/namada-shielded-airdrop"><code>anoma/namada-shielded-airdrop</code></a>. After I left Heliax / Anoma, an EF/Anoma-side $20k grant was put up to fund external implementation.</li>
+    </ul>
+  </article>
 </section>
 
 <section>
-  <h2>Namada</h2>
-  <p>Specs writing, reviewing, and internal auditing for <a href="https://namada.net/">Namada</a>.</p>
+  <h2>Namada — specs and internal audit</h2>
+  <p>Specs writing, reviewing, and internal auditing for <a href="https://namada.net/">Namada</a> — the privacy-preserving proof-of-stake layer that hosts the MASP shielded pool the airdrop construction targets.</p>
 </section>
 
 <section>
   <h2>HVZK overlay for WHIR</h2>
-  <p>Ongoing protocol-design work adding a Honest-Verifier Zero-Knowledge overlay to WHIR, alongside the batch-opening extension. Part of the post-Lita independent research described under <a href="protocol.html">Proof-system Protocol Design</a>.</p>
+  <p>Ongoing protocol-design work adding a Honest-Verifier Zero-Knowledge sumcheck overlay to WHIR (Plonky3 issue #1586, ePrint 2026/391 — sublinear-mask Construction 6.3), planned to cover both prefix- and suffix-binding sumcheck layouts so that a suffix-bound proof doesn't silently lose privacy. Part of the post-Lita independent research described under <a href="protocol.html">Proof-system Protocol Design</a>.</p>
 </section>
 
 <section>
@@ -35,6 +44,11 @@
   <article>
     <h3>Zero-Knowledge Cryptographer &amp; Protocol Developer — Heliax / <a href="https://anoma.net/">Anoma Protocol</a></h3>
     <p class="meta">April 2022 – December 2024 · Berlin, Germany</p>
+    <ul>
+      <li>Designed the shielded airdrop protocol (above).</li>
+      <li>Specs writing, reviewing, and internal auditing for Namada.</li>
+      <li>Halo2 user and contributor; Rust implementation and optimization of the PlonkUp protocol; worked on hiding properties of the KZG polynomial commitment scheme.</li>
+    </ul>
   </article>
 </section>
 

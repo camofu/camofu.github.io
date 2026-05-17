@@ -12,16 +12,31 @@
 <header>
   <a class="back-link" href="about.html">← Back</a>
   <h1>Performance Engineering</h1>
-  <p class="tagline">High-performance computing methods applied to cryptography: SIMD, sumcheck verifier optimization, STARK circuit performance.</p>
+  <p class="tagline">High-performance computing applied to cryptography: zkVM prover throughput, SIMD kernels, and sumcheck verifier optimization.</p>
 </header>
 
 <section>
-  <h2>Selected work</h2>
+  <h2>Valida zkVM — prover performance</h2>
+  <article>
+    <h3>Cryptography Engineer — <a href="https://www.lita.foundation/">Lita</a></h3>
+    <p class="meta">January 2025 – 2025 · Fully remote</p>
+    <p>The reference workload was <code>valida run --fast</code> on <code>reva-client-eth</code> against Ethereum mainnet block 17034871. The flamegraph showed most time in the multi-segment proving path spent on avoidable clones — <code>ValidaSegmentBootData::clone</code>, <code>&lt;BTreeMap as Drop&gt;::drop</code>, and the inner <code>BasicMachine::run</code> / <code>suspend</code> loop.</p>
+    <ul>
+      <li><strong>Memory-aware segment splitting.</strong> Replaced the original "any-trace-near-max-height" splitting rule with a memory-operation-count rule (memory ops dominate trace height, and the count is a static function of the opcode). This eliminated the full first-pass logging that was contributing 30+ minutes on the reference block, enabling a two-pass flow: fast pass to discover segment boundaries, then per-segment slow-mode re-execution for trace generation.</li>
+      <li><strong>Boot-data plumbing.</strong> Teased apart which fields of <code>ValidaSegmentBootData</code> were required for correctness (memory backend, persistent-bus state) versus only for trace generation, killing avoidable clones on segment boundaries while preserving the persistent-bus consistency check.</li>
+      <li><strong>Parallel proving — coordinator/worker design.</strong> Built out the parallel prover (<code>coordinator.rs</code>, <code>worker.rs</code>, <code>parallel.rs</code>) with four sync barriers (trace, permutation, quotient, opening). The coordinator owns the Fiat-Shamir transcript (transcript-soundness requires sequential challenge sampling); workers handle trace generation, polynomial ops, quotient and permutation construction. <code>prove_multi_segment_keccak_parallel</code> ran at ~38s wall / 167s CPU (4.3× speedup) with ~78 MB peak RSS.</li>
+      <li><strong>STARK circuit performance.</strong> R&amp;D of high-performance STARK circuits for the Valida chip set, including the degree-3-safe XOR3 expansion in the Keccak-f chip.</li>
+      <li><strong>Profiling infrastructure.</strong> Set up <code>cargo flamegraph</code> with <code>kernel.perf_event_paranoid</code> and release-build debug symbols; iterated on flamegraphs of the multi-segment proving path.</li>
+    </ul>
+  </article>
+</section>
+
+<section>
+  <h2>WHIR / Plonky3 — SIMD and sumcheck</h2>
   <ul>
-    <li>Merged SIMD <a href="https://github.com/Plonky3/Plonky3/pull/1574"><code>compress_hi_dot</code> PR</a> in Plonky3 — performance improvement for the WHIR / Reed–Solomon proximity stack.</li>
-    <li>Daily Twitter thread on sumcheck optimizations and verifier-side performance.</li>
-    <li>Research and development of high-performance STARK circuits at <a href="https://www.lita.foundation/">Lita</a> (Valida zkVM).</li>
-    <li>Rust implementation and optimization of the PlonkUp protocol at Heliax / <a href="https://anoma.net/">Anoma</a>.</li>
+    <li><strong>Merged SIMD <a href="https://github.com/Plonky3/Plonky3/pull/1574"><code>compress_hi_dot</code> PR</a> in Plonky3.</strong> Rewrote the WHIR <code>compress_hi_dot</code> kernel to route the Packed arm through Plonky3's <code>F::Packing::dot_product::&lt;4&gt;</code> delayed-reduction SIMD dot-product. Two wins stack: ~4× fewer Montgomery reductions in the inner loop (one per 4-wide group instead of one per multiply), and instruction-level parallelism from four independent per-coefficient accumulators replacing the serial mul-add chain. Includes a narrow <code>unsafe</code> block using <code>MaybeUninit::uninit()</code> to skip eager zero-fill of a <code>[F::Packing; 128]</code> scratch buffer.</li>
+    <li><strong>"One sumcheck optimization a day" — Twitter thread series.</strong> Daily public-facing unpacking of <em>Speeding Up Sum-Check Proving</em> (Dao, DeStefano, Bagad, Domb, Thaler — ePrint 2026/587). Days completed: small-big multiplication, delayed reduction, high-degree product (Toom-style extrapolation), univariate / multivariate extrapolation, small-value round batching, split-eq / decomposable equality polynomial. Each post under 280 characters, tuned for the BabyBear/KoalaBear setting where <code>whir-p3</code> lives.</li>
+    <li><strong>Long-running Claude Code optimization agent.</strong> Built a long-running Claude Code agent setup (<code>OPTIMIZATION_PLAN.md</code> + <code>context/</code> + <code>findings/</code>) that scans the <code>Plonky3/whir/</code> codebase against the paper's full optimization taxonomy, scores each technique for applicability/composability/effort, and writes per-optimization findings — with hard architectural constraints (KoalaBear 31-bit base field, two sumcheck cost centers: OOD samples and STIR queries) baked into the prompt.</li>
   </ul>
 </section>
 
@@ -29,9 +44,10 @@
   <h2>Toolkit</h2>
   <ul>
     <li>Rust — primary implementation language.</li>
-    <li>High-performance computing methods applied to cryptographic applications.</li>
+    <li>SIMD: Plonky3 packed-field intrinsics; delayed-reduction kernel design.</li>
     <li>Multilinear sumcheck protocol; verifier-side optimization.</li>
-    <li>Data science (Kaggle bronze medal).</li>
+    <li>Profiling: <code>perf</code>, <code>cargo flamegraph</code>, Criterion benches.</li>
+    <li>Data science (Kaggle bronze medal — RSNA-MICCAI brain tumor classification, 2021).</li>
   </ul>
 </section>
 
