@@ -187,10 +187,16 @@ code {
 
 @media (max-width: 560px) {
   .tile-grid {
-    grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
   .tile {
-    aspect-ratio: 5 / 2;
+    padding: 1rem;
+  }
+  .tile-title {
+    font-size: 1rem;
+  }
+  .tile-icon svg {
+    max-width: 64px;
   }
 }
 
