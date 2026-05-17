@@ -32,37 +32,80 @@
         name="message"
         placeholder="Type a message…"
         aria-label="Message"
+        maxlength="800"
         required
       />
-      <button type="submit" aria-label="Send">Send</button>
+      <button type="submit" id="send" aria-label="Send">Send</button>
     </form>
-    <p class="hint">Backend not wired yet — Mistral integration coming soon.</p>
+    <p class="hint" id="hint"></p>
   </section>
 
 </main>
 
 <script>
+  // Cloudflare quick tunnel — rotates every cloudflared restart.
+  // Switch to a stable named tunnel when ready.
+  const API_URL = "https://troubleshooting-subsequently-byte-perry.trycloudflare.com/chat";
+  const MAX_HISTORY_TURNS = 6;
+
   const form = document.getElementById('composer');
   const input = document.getElementById('input');
+  const send = document.getElementById('send');
   const messages = document.getElementById('messages');
+  const hint = document.getElementById('hint');
 
-  form.addEventListener('submit', (e) => {
+  const history = [];
+
+  function append(role, text) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + (role === 'user' ? 'msg-user' : 'msg-bot');
+    div.textContent = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
 
-    const userMsg = document.createElement('div');
-    userMsg.className = 'msg msg-user';
-    userMsg.textContent = text;
-    messages.appendChild(userMsg);
-
-    const botMsg = document.createElement('div');
-    botMsg.className = 'msg msg-bot';
-    botMsg.textContent = '(Mistral backend not connected yet.)';
-    messages.appendChild(botMsg);
-
+    append('user', text);
     input.value = '';
-    messages.scrollTop = messages.scrollHeight;
+    history.push({ role: 'user', content: text });
+
+    send.disabled = true;
+    const pending = append('bot', '…');
+    hint.textContent = '';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: history.slice(0, -1).slice(-2 * MAX_HISTORY_TURNS),
+        }),
+      });
+
+      if (res.status === 429) {
+        pending.textContent = "I'm rate-limited right now — give me a minute.";
+        history.pop();
+        return;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const data = await res.json();
+      pending.textContent = data.reply;
+      history.push({ role: 'assistant', content: data.reply });
+      history.splice(0, Math.max(0, history.length - 2 * MAX_HISTORY_TURNS));
+    } catch (err) {
+      pending.textContent = "I'm offline right now — try again later.";
+      history.pop();
+    } finally {
+      send.disabled = false;
+      input.focus();
+    }
   });
 </script>
 
