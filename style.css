@@ -7,6 +7,11 @@
   --code-bg: #161922;
 }
 
+body.theme-protocol    { --accent: #ff3030; }
+body.theme-performance { --accent: #ffb020; }
+body.theme-privacy     { --accent: #30d06a; }
+body.theme-quantum     { --accent: #4aa8ff; }
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -205,6 +210,24 @@ code {
   margin-bottom: 1.5rem;
   color: var(--muted);
   font-size: 0.92rem;
+}
+
+.disclaimer {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border-left: 2px solid var(--accent);
+  color: var(--muted);
+  font-size: 0.9rem;
+  background: var(--code-bg);
+  border-radius: 2px;
+}
+
+nav.bottom-nav {
+  display: block;
+  margin-top: 2.5rem;
+  padding: 1.25rem 0 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: none;
 }
 
 footer {
