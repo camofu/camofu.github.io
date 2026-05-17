@@ -137,7 +137,7 @@ code {
 
 .tile {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   aspect-ratio: 1 / 1;
   padding: 1.5rem;
   border: 1px solid var(--rule);
@@ -157,6 +157,26 @@ code {
 .tile-performance:hover { border-color: #ffb020; color: #ffb020; }
 .tile-privacy:hover     { border-color: #30d06a; color: #30d06a; }
 .tile-quantum:hover     { border-color: #4aa8ff; color: #4aa8ff; }
+
+.tile-icon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.tile-icon svg {
+  width: 45%;
+  max-width: 96px;
+  height: auto;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+
+.tile:hover .tile-icon svg {
+  opacity: 1;
+}
 
 .tile-title {
   font-size: 1.25rem;
