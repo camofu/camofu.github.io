@@ -149,11 +149,14 @@ code {
 }
 
 .tile:hover {
-  border-color: var(--accent);
-  color: var(--accent);
   text-decoration: none;
   transform: translateY(-2px);
 }
+
+.tile-protocol:hover    { border-color: #ff3030; color: #ff3030; }
+.tile-performance:hover { border-color: #ffb020; color: #ffb020; }
+.tile-privacy:hover     { border-color: #30d06a; color: #30d06a; }
+.tile-quantum:hover     { border-color: #4aa8ff; color: #4aa8ff; }
 
 .tile-title {
   font-size: 1.25rem;
