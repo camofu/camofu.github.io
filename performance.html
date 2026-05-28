@@ -35,17 +35,17 @@
   <h2>WHIR / Plonky3 — SIMD and sumcheck</h2>
   <ul>
     <li><strong>Merged SIMD <a href="https://github.com/Plonky3/Plonky3/pull/1574"><code>compress_hi_dot</code> PR</a> in Plonky3.</strong> Rewrote the WHIR <code>compress_hi_dot</code> kernel to route the Packed arm through Plonky3's <code>F::Packing::dot_product::&lt;4&gt;</code> delayed-reduction SIMD dot-product. Two wins stack: ~4× fewer Montgomery reductions in the inner loop (one per 4-wide group instead of one per multiply), and instruction-level parallelism from four independent per-coefficient accumulators replacing the serial mul-add chain. Includes a narrow <code>unsafe</code> block using <code>MaybeUninit::uninit()</code> to skip eager zero-fill of a <code>[F::Packing; 128]</code> scratch buffer.</li>
-    <li><strong>"One sumcheck optimization a day" — Twitter thread series.</strong> Daily public-facing unpacking of <em>Speeding Up Sum-Check Proving</em> (Dao, DeStefano, Bagad, Domb, Thaler — <a href="https://eprint.iacr.org/2026/587">ePrint 2026/587</a>). Days completed: small-big multiplication, delayed reduction, high-degree product (Toom-style extrapolation), univariate / multivariate extrapolation, small-value round batching, split-eq / decomposable equality polynomial, univariate skip (melting booleans into higher-degree variables). Each post under 280 characters, tuned for the BabyBear/KoalaBear setting where <code>whir-p3</code> lives.
+    <li><strong>"One sumcheck optimization a day" — Twitter thread series.</strong> Daily public-facing unpacking of <em>Speeding Up Sum-Check Proving</em> (Dao, DeStefano, Bagad, Domb, Thaler — <a href="https://eprint.iacr.org/2026/587">ePrint 2026/587</a>). Each post under 280 characters, tuned for the BabyBear/KoalaBear setting where <code>whir-p3</code> lives.
       <ul>
-        <li><a href="https://x.com/carlo_cretino50/status/2038976645181129165">Day 1</a></li>
-        <li><a href="https://x.com/carlo_cretino50/status/2039337285221494808">Day 2</a></li>
-        <li><a href="https://x.com/carlo_cretino50/status/2040072154339840336">Day 3</a></li>
-        <li><a href="https://x.com/carlo_cretino50/status/2041125651105628533">Day 4</a></li>
-        <li><a href="https://x.com/carlo_cretino50/status/2041484873924223295">Day 5</a></li>
-        <li><a href="https://x.com/carlo_cretino50/status/2041861276536639780">Day 6</a></li>
-        <li><a href="https://x.com/carlo_cretino50/status/2042211240542384275">Day 7</a></li>
-        <li><a href="https://x.com/carlo_cretino50/status/2042591036459938110">Day 8</a></li>
-        <li><a href="https://x.com/carlo_cretino50/status/2048785065610453417">Day 9</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2038976645181129165">Day 1 — small-big multiplication</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2039337285221494808">Day 2 — delayed reduction</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2040072154339840336">Day 3 — product of univariate polynomials</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2041125651105628533">Day 4 — product of multivariate polynomials</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2041484873924223295">Day 5 — small-value setting</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2041861276536639780">Day 6 — streaming setting</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2042211240542384275">Day 7 — decomposable eq polynomial</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2042591036459938110">Day 8 — univariate skip</a></li>
+        <li><a href="https://x.com/carlo_cretino50/status/2048785065610453417">Day 9 — projective sum-check</a></li>
       </ul>
     </li>
     <li><strong>Long-running Claude Code optimization agent.</strong> Built a long-running Claude Code agent setup (<code>OPTIMIZATION_PLAN.md</code> + <code>context/</code> + <code>findings/</code>) that scans the <code>Plonky3/whir/</code> codebase against the paper's full optimization taxonomy, scores each technique for applicability/composability/effort, and writes per-optimization findings — with hard architectural constraints (KoalaBear 31-bit base field, two sumcheck cost centers: OOD samples and STIR queries) baked into the prompt.</li>
