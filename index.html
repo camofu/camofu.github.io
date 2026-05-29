@@ -43,9 +43,8 @@
 </main>
 
 <script>
-  // Cloudflare quick tunnel — rotates every cloudflared restart.
-  // Switch to a stable named tunnel when ready.
-  const API_URL = "https://church-stop-marks-inch.trycloudflare.com/chat";
+  // Stable Tailscale Funnel — fixed URL, auto-restored on every reboot by tailscaled.
+  const API_URL = "https://carlo-friend.tail71351e.ts.net/chat";
   const MAX_HISTORY_TURNS = 6;
 
   const form = document.getElementById('composer');
