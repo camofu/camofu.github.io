@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="How the camofu.github.io chatbot is built: a self-hosted, 4-bit Mistral-7B running on a laptop, fronted by a static GitHub Pages site, with a RAG pipeline and a hardened systemd sandbox.">
+<meta name="description" content="How the camofu.github.io chatbot is built: a self-hosted, 4-bit Qwen3-4B reasoning model running on a desktop, fronted by a static GitHub Pages site, with a two-tier RAG pipeline over an Obsidian vault and a hardened systemd sandbox.">
 <title>Carlo Modica — How I was created</title>
 <link rel="stylesheet" href="style.css">
 <script data-goatcounter="https://camofu.goatcounter.com/count"
@@ -15,7 +15,7 @@
 <header>
   <a class="back-link" href="index.html">← Back to chat</a>
   <h1>How I was created</h1>
-  <p class="tagline">I'm a small language model running on Carlo's laptop. Here's the whole stack — the model, the retrieval pipeline, the path your message travels, and the sandbox that keeps me from doing any damage.</p>
+  <p class="tagline">I'm a small language model running on Carlo's desktop. Here's the whole stack — the model, the retrieval pipeline, the path your message travels, what gets logged, and the sandbox that keeps me from doing any damage.</p>
 </header>
 
 <section>
@@ -23,22 +23,30 @@
   <p>This site is split deliberately into two pieces that live in completely different places:</p>
   <ul>
     <li><strong>A public website</strong> — the page you're reading now. It's just static files (HTML, CSS, an image, a little JavaScript) served for free by <a href="https://pages.github.com/">GitHub Pages</a>. No code runs on GitHub's side; the files are handed to your browser as-is.</li>
-    <li><strong>A private chatbot server</strong> — a Python program running on Carlo's laptop. It wraps a local language model and exposes exactly one useful HTTP endpoint, <code>POST /chat</code>.</li>
+    <li><strong>A private chatbot server</strong> — a Python program running on Carlo's desktop. It wraps a local language model and exposes exactly one useful HTTP endpoint, <code>POST /chat</code>.</li>
   </ul>
   <p>The website is the front door; the chatbot is the brain. They live in separate repositories on purpose — if the model code and the prompt-engineering files were in the website repo, GitHub would happily serve them as plain-text downloads to anyone curious enough. Keeping them apart means the only thing the public can reach is one narrow API.</p>
-  <p class="disclaimer">Nothing about me runs in the cloud. There's no OpenAI key, no hosted inference. The model weights and every generated token come off a single GPU in a laptop.</p>
+  <p class="disclaimer">Nothing about me runs in the cloud. There's no OpenAI key, no hosted inference. The model weights and every generated token come off a single consumer GPU in a desktop.</p>
 </section>
 
 <section>
-  <h2>The model and the retrieval pipeline</h2>
-  <p>The brain is <strong>Mistral-7B-Instruct</strong>, a 7-billion-parameter open-source model, loaded in <strong>4-bit quantisation</strong> via <code>transformers</code> and <code>bitsandbytes</code>. Quantising the weights down to 4 bits is what lets the model fit in roughly 5 GB of GPU memory instead of the ~14 GB the full-precision version would need.</p>
-  <p>On its own, a 7B model doesn't know anything specific about Carlo. That's where <strong>RAG (Retrieval-Augmented Generation)</strong> comes in:</p>
+  <h2>The model</h2>
+  <p>The brain is <strong>Qwen3-4B</strong> — a 4-billion-parameter open-source model from Alibaba's Qwen team — loaded in <strong>4-bit quantisation</strong> (the pre-quantised <code>unsloth/Qwen3-4B-bnb-4bit</code> build). Storing the weights pre-quantised to 4-bit <code>nf4</code> means loading skips the full-precision init buffer that would otherwise blow past the memory of a small (8&nbsp;GB) card; the compute itself runs in <code>bfloat16</code>. The whole thing fits comfortably in a couple of gigabytes of GPU memory.</p>
+  <p>Qwen3 is a <strong>hybrid reasoning model</strong>: it can either answer immediately or first write out a private chain of thought inside a <code>&lt;think&gt;…&lt;/think&gt;</code> block and then answer. The server decides which mode to use <em>per message</em>:</p>
   <ul>
-    <li>A small embedding model — <code>sentence-transformers/all-MiniLM-L6-v2</code>, running on the CPU — turns text into vectors.</li>
-    <li>Carlo's CV is kept as a set of markdown notes (<code>bio.md</code>, <code>skills.md</code>, <code>education.md</code>, and a big <code>persona.md</code>).</li>
-    <li>When you send a message, the retriever finds the few notes most relevant to your question and stitches them into the <strong>system prompt</strong> — the instruction text the model reads before it ever sees your message.</li>
+    <li><strong>Fast mode</strong> — for short greetings, "who are you?", and contact questions. Greedy decoding, capped at ~240 new tokens, no reasoning step. Snappy.</li>
+    <li><strong>Thinking mode</strong> — for anything substantive. Sampled decoding (temperature 0.3), up to ~1500 new tokens, with a hidden reasoning block. The reasoning is split off and <em>not</em> shown to you — you only get the final answer.</li>
   </ul>
-  <p><code>persona.md</code> is the important one: it's a decision tree telling the model how to behave as "Carlo" — how to greet, how to answer technical questions, when to admit it doesn't know, what to refuse. RAG is what lets a small, generic model speak with specific facts without ever being re-trained.</p>
+</section>
+
+<section>
+  <h2>The retrieval pipeline</h2>
+  <p>On its own, a 4B model knows nothing specific about Carlo. That's what the <strong>RAG (Retrieval-Augmented Generation)</strong> layer is for. Carlo keeps his CV and project notes as a set of markdown files in an <strong>Obsidian vault</strong>, and the system prompt is assembled from them in two tiers:</p>
+  <ul>
+    <li><strong>The identity card — always included.</strong> A persona file (a decision tree for how to behave as "Carlo": how to greet, when to refuse, how technical to get), plus the bio, an experience summary, projects, skills, education, and publications. This is prepended to <em>every</em> turn.</li>
+    <li><strong>Deep-dive notes — retrieved per question.</strong> Detailed per-topic notes (WHIR, the Valida zkVM, the shielded airdrop, …) are embedded with a small <code>all-MiniLM-L6-v2</code> model running on the CPU. For each question the four most relevant notes are pulled in by cosine similarity — but only if they clear a relevance floor, so an unrelated question adds nothing. Retrieved notes arrive with an explicit instruction to paraphrase a fact or two, never to recite.</li>
+  </ul>
+  <p>That two-tier split keeps the prompt small on simple turns and only spends context on deep notes when a question actually calls for them.</p>
 </section>
 
 <section>
@@ -46,23 +54,27 @@
   <p>Everything is glued together by a Python server (<code>server.py</code>) built on <strong>FastAPI</strong> and <strong>Uvicorn</strong>, with <strong>Pydantic</strong> validating incoming JSON and <strong>slowapi</strong> enforcing rate limits. When you hit "Send", here's the round trip:</p>
   <ol>
     <li>The page's JavaScript packages your message plus the recent conversation history into a JSON <code>POST</code> request.</li>
-    <li>That request crosses the public internet to a <strong>Tailscale Funnel</strong> tunnel, which terminates TLS and forwards it to the laptop. The server itself only listens on <code>127.0.0.1:8000</code> — the loopback interface — so the tunnel is the <em>only</em> way in.</li>
-    <li>The server validates the input, checks the rate limit and daily cap, retrieves relevant context, and builds the system prompt.</li>
-    <li>Mistral generates a reply on the GPU.</li>
-    <li>FastAPI returns JSON — <code>{"reply": "…"}</code> — back through the tunnel, and the JavaScript drops the text into the chat window.</li>
+    <li>That request crosses the public internet to a <strong>Tailscale Funnel</strong> tunnel, which terminates TLS and forwards it to the desktop. The server itself only listens on <code>127.0.0.1:8000</code> — the loopback interface — so the tunnel is the <em>only</em> way in.</li>
+    <li>The server validates the input, checks the rate limit and the daily cap, retrieves relevant notes, and builds the system prompt.</li>
+    <li>It decides fast-vs-thinking, then Qwen3 generates a reply on the GPU. A lock makes sure only one generation runs at a time, so two visitors can't collide on the single GPU.</li>
+    <li>The hidden reasoning is stripped off, the turn is written to a local log (see below), and FastAPI returns JSON — <code>{"reply": "…"}</code> — back through the tunnel, where the JavaScript drops the text into the chat window.</li>
   </ol>
   <p>A second endpoint, <code>GET /health</code>, just returns <code>{"ok": true}</code> so the tunnel and any monitoring can check whether I'm awake.</p>
 </section>
 
 <section>
-  <h2>Stateless by design</h2>
-  <p>The server keeps <strong>no per-user memory</strong>. Every request from your browser carries the entire (trimmed) conversation along with the new message; the server forgets everything the moment it answers. The whole conversation lives only in your browser tab.</p>
-  <p>This is a deliberate privacy and simplicity choice: there are no sessions to track, no caches to expire, and — if the server were ever compromised — nothing useful for an attacker to steal, because there's no conversation history sitting on disk.</p>
+  <h2>What I remember — and what gets logged</h2>
+  <p>Two different things, worth keeping straight:</p>
+  <ul>
+    <li><strong>No live session memory.</strong> The server holds no per-user state between requests. Your browser sends the recent conversation along with each new message, and the server trims it to the last few turns. The "memory" of an ongoing conversation lives in your browser tab, not on the server.</li>
+    <li><strong>But conversations <em>are</em> saved.</strong> Every turn is appended to a transcript file on the desktop. Each record holds the timestamp, the requester's IP address, your message, the history sent, which notes were retrieved, and the reply — including the model's hidden reasoning. Carlo reads these back to spot where I answered badly and to improve the persona and retrieval.</li>
+  </ul>
+  <p class="disclaimer">That log stays on the desktop, inside the chatbot's sandboxed workspace — it isn't sent to any third party. But it's a real log of real conversations, so: don't tell me anything you wouldn't want written down.</p>
 </section>
 
 <section>
   <h2>The security model</h2>
-  <p>The model itself is harmless — Mistral can't read a filesystem. The risk is the <em>surrounding software</em>: FastAPI, Uvicorn, PyTorch and a couple hundred transitive dependencies all become internet-reachable the moment the tunnel is on. One remote-code-execution bug in any of them, and an attacker would be running code on a daily-driver laptop. So defence happens at two layers.</p>
+  <p>The model itself is harmless — Qwen can't read a filesystem. The risk is the <em>surrounding software</em>: FastAPI, Uvicorn, PyTorch and a couple hundred transitive dependencies all become internet-reachable the moment the tunnel is on. One remote-code-execution bug in any of them, and an attacker would be running code on a daily-driver desktop. So defence happens at two layers.</p>
 
   <h3>Layer one — guards inside the server</h3>
   <p>These don't stop a machine compromise; they stop cost runaway and obvious abuse.</p>
@@ -84,17 +96,17 @@
   <h3>Layer two — an OS-level sandbox</h3>
   <p>The server runs as a dedicated, locked-down system user (<code>chatbot</code>) with no login shell, no home directory, and ownership of nothing except one scratch folder. It's launched and supervised by <strong>systemd</strong>, which applies a long list of kernel-enforced restrictions <em>before any Python runs</em>:</p>
   <ul>
-    <li>The entire filesystem is mounted <strong>read-only</strong> except one writable workspace (<code>/var/lib/chatbot</code>) and a private <code>/tmp</code>.</li>
+    <li>The entire filesystem is mounted <strong>read-only</strong> except one writable workspace (<code>/var/lib/chatbot</code>, which also holds the conversation log) and a private <code>/tmp</code>.</li>
     <li>Read access to the project code is granted narrowly via <strong>ACLs</strong> — the chatbot user can traverse to exactly the project directory and nothing else under <code>/home</code>.</li>
     <li><code>~/.ssh</code> and <code>~/.gnupg</code> are explicitly blanked out, on top of being unreadable already.</li>
     <li><strong>No new privileges</strong>, <strong>zero Linux capabilities</strong>, no setuid escalation, no realtime scheduling, no new namespaces.</li>
     <li>Can't load kernel modules, change sysctls, read kernel logs, touch the clock or hostname, or see other processes.</li>
     <li>Only <code>AF_INET</code>, <code>AF_INET6</code>, and <code>AF_UNIX</code> sockets — no raw or packet sockets.</li>
   </ul>
-  <p>The upshot: even a complete RCE-class compromise of the Python process lands the attacker in a read-only box with no credentials, no other processes, and no useful loot.</p>
+  <p>The upshot: even a complete RCE-class compromise of the Python process lands the attacker in a read-only box, as a user that owns nothing but a scratch directory, with no credentials and no other processes in sight.</p>
 
   <h3>What's left as residual risk</h3>
-  <p>Two things this design doesn't fully eliminate. <strong>Prompt injection</strong> — clever messages trying to make me say something off-script — is partly handled by the persona decision tree and partly an irreducible fact of any public LLM. And a <strong>kernel exploit</strong> could in principle escape the sandbox; the airtight fix (a VM with GPU passthrough) wasn't viable because the laptop's single GPU shares an IOMMU group with the boot SSD, so it can't be isolated to a VM without faking guarantees the hardware doesn't make. Running on a dedicated GPU VPS is the available "zero-risk" upgrade if it's ever worth it.</p>
+  <p>Two things this design doesn't fully eliminate. <strong>Prompt injection</strong> — clever messages trying to make me say something off-script — is partly handled by the persona decision tree and partly an irreducible fact of any public LLM. And a <strong>kernel exploit</strong> could in principle escape the sandbox; the airtight fix (a VM with GPU passthrough) wasn't viable because the desktop's single GPU shares an IOMMU group with the boot SSD, so it can't be isolated to a VM without faking guarantees the hardware doesn't make. Running on a dedicated GPU VPS is the available "zero-risk" upgrade if it's ever worth it.</p>
 </section>
 
 <nav class="bottom-nav">
